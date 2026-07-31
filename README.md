@@ -12,7 +12,7 @@ A responsive product and community website for AfterLife Soles. Built with Next.
 - Supabase schema for users, categories, discussions, threaded replies, and reports
 - Vercel and Sites deployment configuration
 
-The site runs with sample community data out of the box. In preview mode, new discussions and replies are stored in the current browser so the complete experience can be tested immediately. The supplied Supabase schema is the production data model; connect the API routes to Supabase before opening Base Camp publicly.
+Base Camp stores discussions, replies, device identities, and reports in Supabase. Public reads use the publishable key and Row Level Security; all writes go through rate-limited server routes using the secret key.
 
 ## Local development
 
@@ -28,10 +28,10 @@ Requirements: Node.js 22.13 or later and npm.
 
 1. Create a Supabase project.
 2. Open the SQL editor and run `supabase/schema.sql` once. This creates the five requested tables, indexes, starter categories, and read policies.
-3. Copy the project URL and anon key into `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-4. Add the service-role key as `SUPABASE_SERVICE_ROLE_KEY`. Never expose this value through a `NEXT_PUBLIC_` variable.
+3. Copy the project URL and publishable key into `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+4. Add a secret key as `SUPABASE_SECRET_KEY`. Never expose this value through a `NEXT_PUBLIC_` variable.
 5. Set a long random `DEVICE_TOKEN_SECRET`. Production write routes should hash the device cookie with this value before storing it as `users.device_token_hash`.
-6. Set `ADMIN_PASSWORD`, and protect moderation mutations with a server-side admin session. The visible preview panel uses `NEXT_PUBLIC_ADMIN_PREVIEW_PASSWORD` only for local demonstration and must not be treated as production security.
+6. Set `ADMIN_PASSWORD`. Successful admin login creates a signed, HTTP-only, eight-hour moderation session.
 
 The schema supports nested replies through `parent_reply_id`, future profiles, full-text discussion search, moderation reports, and soft-hiding of community content.
 
@@ -59,8 +59,7 @@ The included limiter is intentionally lightweight and per runtime instance. For 
 ## Production launch checklist
 
 - Replace the Before / After and instruction placeholders with final photography or video.
-- Wire Base Camp reads and writes to the supplied Supabase schema.
-- Replace preview admin access with a server-issued, HTTP-only admin session.
+- Verify the Supabase health endpoint and test a discussion, reply, report, and moderation action.
 - Enable Turnstile on both community write forms and contact submissions.
 - Review Supabase row-level-security policies before enabling public writes.
 - Verify the sender domain in Resend and test message delivery.
