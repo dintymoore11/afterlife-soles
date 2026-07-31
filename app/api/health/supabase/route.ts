@@ -5,6 +5,12 @@ export async function GET() {
     if (error) throw error;
     return Response.json({ ok: true, categories: count });
   } catch (error) {
-    return Response.json({ ok: false, error: error instanceof Error ? error.message : "Supabase connection failed" }, { status: 503 });
+    const message = error instanceof Error
+      ? error.message
+      : typeof error === "object" && error && "message" in error
+        ? String(error.message)
+        : "Supabase connection failed";
+    console.error("Supabase health check failed:", error);
+    return Response.json({ ok: false, error: message }, { status: 503 });
   }
 }
