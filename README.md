@@ -45,6 +45,8 @@ The form posts to `/api/contact`. Set:
 - `RESEND_API_KEY` to enable actual email delivery.
 - `CONTACT_FROM_EMAIL` to a verified sender in Resend.
 - `CONTACT_TO_EMAIL` to the private destination address.
+- `NOTIFICATION_FROM_EMAIL` to the verified sender used for Forum reply alerts.
+- `NOTIFICATION_SIGNING_SECRET` to a long random value used to protect unsubscribe links.
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` when enabling Cloudflare Turnstile.
 
 Without a Resend key, local submissions return a successful preview response and do not send email. The destination address is never rendered publicly.

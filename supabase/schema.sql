@@ -8,6 +8,7 @@ create table if not exists public.categories (
 create table if not exists public.users (
   id uuid primary key default gen_random_uuid(), display_name text not null check (char_length(display_name) between 1 and 80),
   email text, device_token_hash text unique not null, is_admin boolean not null default false,
+  email_notifications_enabled boolean not null default false,
   created_at timestamptz not null default now(), last_seen_at timestamptz not null default now()
 );
 create table if not exists public.discussions (
@@ -37,6 +38,12 @@ create table if not exists public.attachments (
   size_bytes bigint not null check (size_bytes between 1 and 10485760), created_at timestamptz not null default now(),
   check ((discussion_id is not null)::int + (reply_id is not null)::int = 1)
 );
+create table if not exists public.discussion_subscriptions (
+  user_id uuid not null references public.users(id) on delete cascade,
+  discussion_id uuid not null references public.discussions(id) on delete cascade,
+  is_subscribed boolean not null default true, created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(), primary key (user_id, discussion_id)
+);
 
 create index if not exists discussions_category_created_idx on public.discussions(category_id, created_at desc);
 create index if not exists discussions_search_idx on public.discussions using gin(search_document);
@@ -44,6 +51,7 @@ create index if not exists replies_discussion_created_idx on public.replies(disc
 create index if not exists reports_status_idx on public.reports(status, created_at desc);
 create index if not exists attachments_discussion_idx on public.attachments(discussion_id);
 create index if not exists attachments_reply_idx on public.attachments(reply_id);
+create index if not exists discussion_subscriptions_discussion_idx on public.discussion_subscriptions(discussion_id) where is_subscribed;
 
 insert into public.categories (slug,name,description,sort_order) values
  ('questions','Questions','Get repair help from the community.',1),
@@ -57,6 +65,7 @@ alter table public.discussions enable row level security;
 alter table public.replies enable row level security;
 alter table public.reports enable row level security;
 alter table public.attachments enable row level security;
+alter table public.discussion_subscriptions enable row level security;
 
 drop policy if exists "categories are public" on public.categories;
 drop policy if exists "visible discussions are public" on public.discussions;
@@ -81,6 +90,7 @@ revoke all on public.users, public.discussions, public.replies, public.reports f
 grant select on public.categories, public.users, public.discussions, public.replies to anon, authenticated;
 revoke all on public.attachments from anon, authenticated;
 grant select on public.attachments to anon, authenticated;
+revoke all on public.discussion_subscriptions from anon, authenticated;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('community-attachments', 'community-attachments', true, 10485760, array['image/jpeg','image/png','image/webp','image/gif','image/avif','application/pdf','text/plain','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'])

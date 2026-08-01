@@ -2,6 +2,7 @@ import { createAdminSupabase } from "@/lib/supabase/server";
 import { getOrCreateDeviceToken, sha256 } from "@/lib/security";
 import { rateLimit } from "@/lib/rate-limit";
 import { validateAttachmentInputs } from "@/lib/attachments";
+import { sendReplyNotifications, subscribeToDiscussion } from "@/lib/notifications";
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   if (!rateLimit(request, "reply", 10, 60_000)) return Response.json({ error: "Please wait before replying again." }, { status: 429 });
@@ -9,7 +10,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const body = await request.json() as Record<string, unknown>;
   if (body.website) return Response.json({ ok: true });
   const name = String(body.name || "").trim(), text = String(body.body || "").trim();
+  const email = String(body.email || "").trim().toLowerCase(), notify = body.notify === "on" || body.notify === true;
   if (!name || !text) return Response.json({ error: "Name and reply are required." }, { status: 400 });
+  if (notify && !/^\S+@\S+\.\S+$/.test(email)) return Response.json({ error: "Enter your email to receive reply notifications." }, { status: 400 });
   const db = createAdminSupabase();
   const { data: discussion } = await db.from("discussions").select("is_locked,is_hidden").eq("id", id).single();
   if (!discussion || discussion.is_hidden) return Response.json({ error: "Discussion not found." }, { status: 404 });
@@ -18,7 +21,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   let attachments;
   try { attachments = validateAttachmentInputs(body.attachments, `${tokenHash}/`); }
   catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Invalid attachments." }, { status: 400 }); }
-  const { data: user, error: userError } = await db.from("users").upsert({ display_name: name.slice(0, 80), device_token_hash: tokenHash, last_seen_at: new Date().toISOString() }, { onConflict: "device_token_hash" }).select("id").single();
+  const userValues: Record<string, unknown> = { display_name: name.slice(0, 80), device_token_hash: tokenHash, last_seen_at: new Date().toISOString() };
+  if (email) userValues.email = email.slice(0, 320);
+  const { data: user, error: userError } = await db.from("users").upsert(userValues, { onConflict: "device_token_hash" }).select("id").single();
   if (userError) return Response.json({ error: userError.message }, { status: 500 });
   const { data: reply, error } = await db.from("replies").insert({ discussion_id: id, author_id: user.id, body: text.slice(0, 5000), parent_reply_id: body.parentReplyId || null }).select("id").single();
   if (error) return Response.json({ error: error.message }, { status: 500 });
@@ -26,5 +31,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const { error: attachmentError } = await db.from("attachments").insert(attachments.map((file) => ({ reply_id: reply.id, storage_path: file.path, file_name: file.name, mime_type: file.type, size_bytes: file.size })));
     if (attachmentError) { await db.storage.from("community-attachments").remove(attachments.map((file) => file.path)); await db.from("replies").delete().eq("id", reply.id); return Response.json({ error: attachmentError.message }, { status: 500 }); }
   }
+  await subscribeToDiscussion(db, user.id, id, notify);
+  try { await sendReplyNotifications(id, user.id, name.slice(0, 80), text.slice(0, 5000)); }
+  catch (notificationError) { console.error("Forum notification error", notificationError); }
   return Response.json({ ok: true }, { status: 201 });
 }
