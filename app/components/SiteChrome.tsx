@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-const nav = [["/", "Home"], ["/instructions", "Instructions"], ["/base-camp", "Base Camp"], ["/contact", "Contact"]];
+const nav = [["/", "Home"], ["/instructions", "Instructions"], ["/base-camp", "Forum"], ["/contact", "Contact"]];
 
 export function Mark() {
   return <span className="mark" aria-hidden="true"><i /><i /><i /></span>;
@@ -23,5 +23,5 @@ export function Header() {
 }
 
 export function Footer() {
-  return <footer><div className="footer-brand"><Mark /><strong>BUILT TO KEEP<br />CLIMBING.</strong></div><div className="footer-links"><Link href="/instructions">Instructions</Link><Link href="/base-camp">Base Camp</Link><Link href="/contact">Contact</Link></div><p>© {new Date().getFullYear()} AfterLife Soles<br />Repair more. Replace less.</p></footer>;
+  return <footer><div className="footer-brand"><Mark /><strong>BUILT TO KEEP<br />CLIMBING.</strong></div><div className="footer-links"><Link href="/instructions">Instructions</Link><Link href="/base-camp">Forum</Link><Link href="/contact">Contact</Link></div><p>© {new Date().getFullYear()} AfterLife Soles<br />Repair more. Replace less.</p></footer>;
 }
