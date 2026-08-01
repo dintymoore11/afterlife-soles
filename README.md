@@ -7,6 +7,7 @@ A responsive product and community website for AfterLife Soles. Built with Next.
 - Premium responsive product homepage
 - Written installation guide with photo/video placeholders
 - Base Camp discussion board with categories, search, sorting, replies, reports, and low-friction device identity
+- Direct-to-Supabase photo and document attachments with large image/PDF previews
 - Hidden `/admin` moderation workspace with pin, lock, hide, and delete controls
 - Contact form with honeypot, rate limiting, optional Turnstile verification, and Resend delivery
 - Supabase schema for users, categories, discussions, threaded replies, and reports
@@ -34,6 +35,8 @@ Requirements: Node.js 22.13 or later and npm.
 6. Set `ADMIN_PASSWORD`. Successful admin login creates a signed, HTTP-only, eight-hour moderation session.
 
 The schema supports nested replies through `parent_reply_id`, future profiles, full-text discussion search, moderation reports, and soft-hiding of community content.
+
+Community posts and replies accept up to four attachments of 10 MB each. Supported formats are JPEG, PNG, WebP, GIF, AVIF, PDF, TXT, DOC, and DOCX. Uploads are written directly to the public `community-attachments` Supabase Storage bucket through short-lived signed upload tokens; the server never exposes the Supabase secret key.
 
 ## Contact delivery
 
