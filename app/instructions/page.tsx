@@ -1,5 +1,6 @@
 import Image from "next/image";
 import "./instructions.css";
+import "./instructions-fixes.css";
 
 const sections = [
   { number: "01", title: "Sand both surfaces", body: "Sand the shoe and toe cap surfaces until they appear dull.", image: "/images/instructions/sanding.jpg", alt: "Sanding the rubber surface of a climbing shoe until it appears dull" },

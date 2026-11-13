@@ -3,6 +3,7 @@ import { Archivo, Archivo_Black } from "next/font/google";
 import "./globals.css";
 import "./product.css";
 import "./brand.css";
+import "./footer-brand.css";
 import { Footer, Header } from "./components/SiteChrome";
 
 const archivo = Archivo({ subsets: ["latin"], variable: "--font-body" });

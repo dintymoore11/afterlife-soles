@@ -1,0 +1,15 @@
+.instruction-list .replacement-note {
+  grid-template-columns: minmax(88px, auto) minmax(0, 1fr);
+  column-gap: 28px;
+}
+
+.replacement-note > span {
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .instruction-list .replacement-note {
+    grid-template-columns: 1fr;
+    row-gap: 14px;
+  }
+}

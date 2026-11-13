@@ -1,0 +1,30 @@
+.repeat-message {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 70px;
+  align-items: start;
+  border-top: 1px solid var(--line);
+  padding: 55px 24px 0;
+}
+
+.repeat-message h3 {
+  margin: 0;
+  font: clamp(32px, 4vw, 54px) / 0.95 var(--font-display);
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+
+.repeat-message p {
+  max-width: 680px;
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 17px;
+}
+
+@media (max-width: 800px) {
+  .repeat-message {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding-inline: 0;
+  }
+}
